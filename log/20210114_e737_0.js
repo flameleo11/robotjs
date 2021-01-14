@@ -1,0 +1,15 @@
+mouseclick(1184, 265); sleep(3032);
+mouseclick(1217, 394); sleep(2416);
+mouseclick(1236, 548); sleep(2416);
+mouseclick(1300, 310); sleep(2105);
+mouseclick(1143, 360); sleep(2743);
+mouseclick(1244, 491); sleep(2201);
+mouseclick(1256, 603); sleep(2912);
+mouseclick(1375, 532); sleep(2312);
+mouseclick(1492, 516); sleep(4409);
+mouseclick(1533, 368); sleep(2857);
+mouseclick(1480, 462); sleep(2479);
+mouseclick(1283, 548); sleep(3096);
+mouseclick(1569, 365); sleep(3128);
+mouseclick(1324, 292); sleep(3241);
+mouseclick(1741, 402);

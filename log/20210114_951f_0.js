@@ -1,0 +1,17 @@
+mousemove(1411, 383); sleep(500);
+mouseclick(1411, 383); sleep(2000);
+mouseclick(1237, 529); sleep(2700);
+mouseclick(1369, 324); sleep(1700);
+mouseclick(1293, 347); sleep(2000);
+mouseclick(1132, 369); sleep(2700);
+mouseclick(1244, 488); sleep(2200);
+mouseclick(1256, 601); sleep(2700);
+mouseclick(1378, 522); sleep(2000);
+mouseclick(1479, 519); sleep(2400);
+mouseclick(1498, 373); sleep(2700);
+mouseclick(1471, 456); sleep(2000);
+mouseclick(1282, 568); sleep(2700);
+mouseclick(1464, 347); sleep(2000);
+mouseclick(1482, 417); sleep(2400);
+mouseclick(1326, 308); sleep(2400);
+mouseclick(1473, 270); sleep(2400);
