@@ -25,11 +25,15 @@ function trace(...args) {
 	print(moment().format('YYYYMM_DD_hh_mm_ss'), ...args)
 }
 
+function line(i) {
+	trace("[line]", i)
+}
 function sleep_org(ms) {
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 }
 
 function sleep(ms) {
+	print(`sleep(${ms})`)	
 	sleep_org(ms*self.factor)
 }
 
@@ -42,6 +46,7 @@ function mousemove(x, y, smooth=false) {
 }
 
 function mouseclick(x, y, smooth=false, fix=false) {
+	print(`mouseclick(${x}, ${y})`)	
 	mousemove(x, y, smooth)
 	robot.mouseClick();
 	sleep_org(100)
@@ -58,15 +63,16 @@ function init(args, i, max) {
 	var speed        = args[4] || 1;
 	var factor = 1 / (speed || 1)	
 
-	if (i > max - 20) {
-		factor = factor * (1.5 + 0.1)
-	} else if (i > max - 40) {
+	if (i > max - 20*1.5) {
+		factor = factor * (1.5 + 0.2)
+	} else if (i > max - 45) {
 		factor = factor * (1.2 + 0.1)
 	}
 
 	self.factor = factor
 
 	var sandbox = {
+		line: line,
 		mousemove: mousemove,
 	  mouseclick: mouseclick,
 	  sleep: sleep

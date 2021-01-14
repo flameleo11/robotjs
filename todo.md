@@ -3,6 +3,11 @@
 
 	ok
 
+2 add relative sreen client pos
+
+
+
+
 2 mod for fix 
 	change default sandbox	
 
@@ -27,11 +32,9 @@
 3 abount over a gold round
 	delete user & transfer gold 
 
-5 add relative sreen client pos
-
-
 6 mouseshadow has problem
   when sleep not working other trigger listener
+  test pass
 
 7 mouse click back
 
