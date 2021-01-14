@@ -7,19 +7,29 @@ const fs = require('fs');
 const execSync = require('child_process').execSync;
 var pathlib = require('path');
 
+
 var common = require('./common.js');
-// { trace: [Function: trace],
-//   easyhash: [Function: easyhash],
-//   mouseclick: [Function: mouseclick],
-//   sleep: [Function: sleep],
-//   isHotkeyEvent: [Function: isHotkeyEvent],
-//   log_folder: '/drive_d/work/robotjs/log' }
-// log/data
+var trace = common.trace;
+var easyhash = common.easyhash
+
+var mouseclick = common.mouseclick
+var mousemove  = common.mousemove
+var sleep_org  = common.sleep
+
+var isHotkeyEvent = common.isHotkeyEvent
+var log_folder = common.log_folder
 
 
 //----------------------------------------------------------
 // config
 //----------------------------------------------------------
+
+var hotkey_startRecord = "Ctrl+Shift+R"
+var hotkey_stopRecord  = "Ctrl+Shift+S"
+var hotkey_quit        = "Ctrl+Shift+Q"
+// startReplay = "Ctrl+Alt+J"		
+// stopReplay  = "Ctrl+Alt+K"	
+
 
 var app_folder = pathlib.dirname(__filename);
 var log_folder = pathlib.join(app_folder, 'log');
@@ -28,41 +38,24 @@ var args = process.argv.slice(1);
 
 var replay_name  = args[1] || "lastreplay.js"
 var repeat_times = args[2] || 1;
-var speed        = args[3] || 1;
+var modname      = args[3] || "robot.js";
+var speed        = args[4] || 1;
+var factor = 1 / (speed || 1)
 
 if (replay_name.startsWith("./log/")) {
 	replay_name = replay_name.slice(("./log/").length)
+} 
+var path = replay_name;
+if (!replay_name.includes("/")) {
+	path = pathlib.join(log_folder, replay_name)
 }
 
 // var path = "/drive_d/work/robotjs/log/20210113_f39e_0.js"
-var path = pathlib.join(log_folder, replay_name)
 
-var factor = 1 / (speed || 1)
-robot.setMouseDelay(10);
 
 //----------------------------------------------------------
 // func
 //----------------------------------------------------------
-
-function mousemove(x, y) {
-	robot.moveMouse(x, y);
-	// robot.moveMouseSmooth(x, y);
-}
-
-function mouseclick(x, y) {
-	robot.moveMouse(x, y);
-	// robot.moveMouseSmooth(x, y);
-	robot.mouseClick();
-	// robot.mouseToggle("up");
-}
-
-function sleep_org(ms) {
-  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
-}
-
-function sleep(ms) {
-	sleep_org(ms*factor)
-}
 
 function parseWindowId(text) {
 	var ret = text.match(/Window id:\s+(\w+)/)
@@ -96,49 +89,43 @@ function count_down(fn, sec) {
 function windowactivate(pid) {
 	// var pid = 31457291
 	var cmd = `xdotool windowactivate ${pid}`
-	print(111, cmd)
 	var buf = execSync(cmd);
 	return (buf.toString())	
 }
 
 //----------------------------------------------------------
-// sandbox
+// main
 //----------------------------------------------------------
-
-
-var sandbox = {
-	mousemove: mousemove,
-  mouseclick: mouseclick,
-  sleep: sleep
-};
-
-var context = new vm.createContext(sandbox);
-
-//----------------------------------------------------------
-// rem
-//----------------------------------------------------------
-print(`[info] Please select window first: `)
+print(`[info] select window: `)
 var winfo = getWindowInfo()
 var pid = winfo.id
 print(winfo.text)
 
 print(`[replay] repeat ${repeat_times} ${replay_name} (speed: x${speed})`)
 
-var code = fs.readFileSync(path, {encoding:'utf8', flag:'r'}); 
-// var prefix = `sleep(1000)`;
-// code = prefix + code;
-
-var script = new vm.Script(code);
 
 function main() {
+	var code = fs.readFileSync(path, {encoding:'utf8', flag:'r'}); 
+	var script = new vm.Script(code);
 	print("[replay] start:")
 	// require(replay_name);
+	var mod = require("./mods/" + modname);
+
+
+	// var sandbox = {
+	// 	mousemove: mousemove,
+	//   mouseclick: mouseclick,
+	//   sleep: sleep
+	// };
+	
 	for (var i = 1; i <= repeat_times; i++) {
+		var sandbox = mod.init(args, i, repeat_times)
+		var context = new vm.createContext(sandbox);
 		script.runInContext(context);
 	}
 }
 
-print("[replay] count down:")
+print(`[replay] count down: windowactivate ${pid}`)
 count_down(function (sec) {
 	windowactivate(pid)
 	if (sec == 0) {

@@ -13,7 +13,7 @@ var print = console.log;
 var app_folder = path.dirname(__filename);
 var log_folder = path.join(app_folder, 'log');
 
-robot.setMouseDelay(10);
+robot.setMouseDelay(0);
 
 //----------------------------------------------------------
 // func
@@ -69,10 +69,9 @@ function isHotkeyEvent(event, hotkey, caseSensitive = false) {
 	if (arr.shiftKey !== event.shiftKey ) {
 		return false;
 	}
-	if (arr.altKey !== event.ctrlKey ) {
+	if (arr.altKey !== event.altKey ) {
 		return false;
 	}
-
 	var keycode = event.rawcode
   var str = String.fromCharCode(keycode)
   if (caseSensitive) {
@@ -81,11 +80,27 @@ function isHotkeyEvent(event, hotkey, caseSensitive = false) {
 	return (arr.includes(str.toLowerCase()) || arr.includes(str.toUpperCase()));
 }
 
-function mouseclick(x, y) {
-	robot.moveMouse(x, y);
-	robot.moveMouseSmooth(x, y);
+function mousemove(x, y, smooth=false) {
+	if (smooth) {
+		robot.moveMouseSmooth(x, y);
+	} else {
+		robot.moveMouse(x, y);
+	}
+}
+
+function mouseclick(x, y, smooth=false, fix=false) {
+	var mouse = robot.getMousePos();
+	var x1 = mouse.x;
+	var y1 = mouse.y;
+	// start postion
+	mousemove(x, y, smooth)
+
 	robot.mouseClick();
-	robot.mouseToggle("up");
+	if (fix) {
+		robot.mouseToggle("up");
+	}
+	sleep(100)
+	mousemove(x1, y1, smooth)
 }
 
 function sleep(ms) {
@@ -97,6 +112,9 @@ module.exports = exports = {
   easyhash      : easyhash,
 
 	mouseclick    : mouseclick,
+	mousemove     : mousemove,
+
+	
   sleep         : sleep,
 
 	isHotkeyEvent : isHotkeyEvent,

@@ -10,16 +10,8 @@ const robot = require("robotjs");
 
 
 var common = require('./common.js');
-// { trace: [Function: trace],
-//   easyhash: [Function: easyhash],
-//   mouseclick: [Function: mouseclick],
-//   sleep: [Function: sleep],
-//   isHotkeyEvent: [Function: isHotkeyEvent],
-//   log_folder: '/drive_d/work/robotjs/log' }
-// log/data
 var trace = common.trace;
 var easyhash = common.easyhash
-var sleep = common.sleep
 var isHotkeyEvent = common.isHotkeyEvent
 var log_folder = common.log_folder
 
@@ -40,6 +32,13 @@ var arr_click        = []
 var m_click_delay    = 0
 var m_click_lasttime = 0
 var curstate         = "idle"
+
+
+var hotkey_startRecord = "Ctrl+Shift+R"
+var hotkey_stopRecord  = "Ctrl+Shift+S"
+var hotkey_quit        = "Ctrl+Shift+Q"
+// startReplay = "Ctrl+Alt+J"		
+// stopReplay  = "Ctrl+Alt+K"	
 
 //----------------------------------------------------------
 // tools
@@ -148,88 +147,31 @@ function stopRecord(e) {
 	var arr_line = [];
 	var line = "";
 
-	lastreplay.map((e)=>{
+	lastreplay.map((e, index)=>{
+		var fn = e.type;
 		var x = e.x;
 		var y = e.y;
-		var action = e.type;
-
 		var ms = e.pre_nexttime;
-	  if (ms > 0 ) {
-	  	line = `${action}(${x}, ${y}); sleep(${ms});`;
-	  } else {
-	  	line = `${action}(${x}, ${y});`;
+
+		var sz_x = (`${x}`).padStart(4, ' ')
+		var sz_y = (`${y}`).padStart(4, ' ')
+		var sz_ms = (`${ms}`).padStart(5, ' ')
+		var sz_fn = (`${fn}`).padStart(10, ' ')
+		var sz_index = (`${index+1}`).padStart(4, ' ')
+
+		var part1 = `line(${sz_index});`
+		var part2 = `${sz_fn}(${sz_x}, ${sz_y});`;
+		var part3 = `sleep(${sz_ms});`;
+	  if (ms <= 0 ) {
+	  	part3 = "";
 	  }
+
+	  line = part1 + part2 + part3;
 		arr_line.push(line)
 	})
 
 	var text = arr_line.join('\n');
 	save_replay(lastreplay.id, text)
-}
-
-// [info]  { button: 1, clicks: 1, x: 924, y: 854, type: 'mouseclick' }
-// [info]  { button: 1, clicks: 1, x: 987, y: 803, type: 'mouseclick' }
-// [info]  { button: 1, clicks: 1, x: 1133, y: 829, type: 'mouseclick' }
-function startReplay(e) {
-	print(111)
-	if (curstate !== "idle") {
-		print(222)
-		print("[warning] not idle: ", curstate)
-		return 
-	}
-	print(333)
-	replaying = true
-	curstate = "replaying"
-
-	// var lastreplay = arr_replay.pop();
-	var lastreplay = arrtail(arr_replay)
-
-	print("")
-	print(`[info] start replay: ${lastreplay.id}`)
-	print(`<replay id="${lastreplay.id}">`)
-	print("")
-
-	var arr_line = [];
-	var line = "";
-
-	lastreplay.map((e)=>{
-		if (curstate !== "replaying") {
-			return 
-		}	
-		var x = e.x;
-		var y = e.y;
-		var ms = e.pre_nexttime;
-
-	  sleep(e.delay)
-	  mouseclick(e.x, e.y)
-
-	  if (ms > 0 ) {
-	  	line = `mouseclick(${x}, ${y}); sleep(${ms});`;
-	  } else {
-	  	line = `mouseclick(${x}, ${y});`;
-	  }
-
-		// arr_line.push(line)
-
-		print(`[replay] ${line}`)
-	})
-
-	stopReplay(e, "ok")
-
-	// var text = arr_line.join('\n');
-	// save_replay(lastreplay.id, text)
-}
-
-function stopReplay(e, tag) {
-	if (curstate !== "replaying") {
-		print("[warning] not replaying: ", curstate)
-		return 
-	}		
-	var lastreplay = arrtail(arr_replay)
-	replaying = false
-	curstate = "idle"
-	print("")
-	print(`<replay/> <!-- id: ${lastreplay.id} [${tag}] -->`)
-	print("\n")
 }
 
 // [info] mouseclick { button: 1, clicks: 1, x: 924, y: 854, type: 'mouseclick' }
@@ -289,31 +231,23 @@ iohook.on("mouseclick", (e) => {
   
 });
 
+
 // {keychar: 'f', keycode: 19, rawcode: 15, type: 'keypress'}
 iohook.on("keydown", (e) => {
-	if (isHotkeyEvent(e, "Ctrl+Alt+G")) {
+	if (isHotkeyEvent(e, hotkey_startRecord)) {
 		print("")
-		print(1, "Ctrl+Alt+G")
+		print(1, hotkey_startRecord)
 		startRecord(e)
 	}
-	if (isHotkeyEvent(e, "Ctrl+Alt+H")) {
+	if (isHotkeyEvent(e, hotkey_stopRecord)) {
 		print("")
-		print(2, "Ctrl+Alt+H")
+		print(2, hotkey_stopRecord)
 		stopRecord(e)
 	}
-	if (isHotkeyEvent(e, "Ctrl+Alt+J")) {
+
+	if (isHotkeyEvent(e, hotkey_quit)) {
 		print("")
-		print(3, "Ctrl+Alt+J")
-		startReplay(e)
-	}
-	if (isHotkeyEvent(e, "Ctrl+Alt+K")) {
-		print("")
-		print(4, "Ctrl+Alt+K")
-		stopReplay(e, "interrupt")
-	}
-	if (isHotkeyEvent(e, "Ctrl+Alt+L")) {
-		print("")
-		print(0, "Ctrl+Alt+L")
+		print(0, hotkey_quit)
 		process.exit(0);
 	}
 });
@@ -330,11 +264,18 @@ process.on('uncaughtException', function (err) {
 
 iohook.start();
 
+
+
 print(`
-[Help]
-startRecord = "Ctrl+Alt+G"		
-stopRecord  = "Ctrl+Alt+H"		
-startReplay = "Ctrl+Alt+J"		
-stopReplay  = "Ctrl+Alt+K"		
-exit        = "Ctrl+Alt+L"
+----------------------------------------
+--  
+--              Menu
+--  
+--          ------------
+--  
+--    Start | ${hotkey_startRecord}
+--    Stop  | ${hotkey_stopRecord}
+--    Quit  | ${hotkey_quit}
+--    
+----------------------------------------
 `);
